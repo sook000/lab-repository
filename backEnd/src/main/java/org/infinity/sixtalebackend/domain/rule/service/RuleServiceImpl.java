@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.equipment.repository.EquipmentReposito
 import org.infinity.sixtalebackend.domain.rule.domain.*;
 import org.infinity.sixtalebackend.domain.rule.dto.*;
 import org.infinity.sixtalebackend.domain.rule.repository.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class RuleServiceImpl implements RuleService {
     private final StatRepository statRepository;
 
     @Override
+    @Cacheable(value = "ruleCache", key = "#ruleID", unless = "#result == null")
     public RuleInfoResponse readRule(Long ruleID) {
         // 룰
         Rule rule = ruleRepository.findById(ruleID).get();
@@ -83,6 +85,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
+    @Cacheable(value = "jobListCache", key = "#ruleID", unless = "#result == null")
     public JobListResponse readJobList(Long ruleID) {
         Rule rule = ruleRepository.findById(ruleID).get();
         List<Job> jobList = jobRepository.findByRule(rule);
@@ -104,6 +107,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
+    @Cacheable(value = "jobOptionCache", key = "#ruleID + ':' + #jobID", unless = "#result == null")
     public JobOptionListResponse readJobOptionList(Long ruleID, Long jobID) {
         Rule rule = ruleRepository.findById(ruleID).get();
         Job job = jobRepository.findById(jobID).get();
@@ -172,9 +176,12 @@ public class RuleServiceImpl implements RuleService {
 
     @Transactional(readOnly = true)
     @Override
+    @Cacheable(value = "commonActionsCache", key = "#ruleID", unless = "#result == null")
     public CharacterActionListResponse getCommonActions(Long ruleID) {
-        Rule rule = ruleRepository.findById(ruleID).get();
-        List<CommonAction> commonActions = commonActionRepository.findByRule(rule);
+//        Rule rule = ruleRepository.findById(ruleID).get();
+//        List<CommonAction> commonActions = commonActionRepository.findByRule(rule);
+       // Rule을 직접 조회하지 않고 CommonAction만 가져오기
+        List<CommonAction> commonActions = commonActionRepository.findByRuleIdWithFetch(ruleID);
 
         List<CharacterActionResponse> basicActions = commonActions.stream()
                 .filter(CommonAction::getIsBasic) // isBasic is true

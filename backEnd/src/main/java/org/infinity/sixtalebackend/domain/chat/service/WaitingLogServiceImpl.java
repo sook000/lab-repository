@@ -1,5 +1,6 @@
 package org.infinity.sixtalebackend.domain.chat.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingChatLog;
 import org.infinity.sixtalebackend.domain.chat.domain.WaitingWhisperLog;
@@ -17,6 +18,7 @@ import org.infinity.sixtalebackend.infra.redis.service.RedisPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,8 @@ public class WaitingLogServiceImpl implements WaitingLogService{
     private final WaitingWhisperLogRepository waitingWhisperLogRepository;
     private final ChatRoomService chatRoomService;
     private final RedisPublisher redisPublisher;
+    private final RedisTemplate<String, String> redisTemplate; // RedisTemplate 추가
+    private final ObjectMapper objectMapper; // JSON 직렬화를 위한 ObjectMapper 추가
 
     /**
      * 대기방 채팅, 귓속말 채팅 기능
@@ -61,12 +65,25 @@ public class WaitingLogServiceImpl implements WaitingLogService{
         if(MessageType.WHISPER.equals(chatMessageRequest.getType())){
             handleWhisperMessage(chatMessageRequest.getRoomID(), member, chatMessageRequest);
         }else {
+            // 기존 방식
             handleChatMessage(chatMessageRequest.getRoomID(), member, chatMessageRequest);
+
+            // Redis에 로그 저장
+//            saveLogToRedis(chatMessageRequest);
         }
         // Websocket에 발행된 메시지를 redis로 발행한다(publish)
 //        redisPublisher.publish(chatRoomService.getTopic(String.valueOf(chatMessageRequest.getRoomID())), chatMessageRequest);
 
         return chatMessageRequest;
+    }
+    private void saveLogToRedis(ChatMessageRequest chatMessageRequest) {
+        try {
+            String redisKey = "chatLogs:waitingRoom:" + chatMessageRequest.getRoomID();
+            String logJson = objectMapper.writeValueAsString(chatMessageRequest); // JSON 변환
+            redisTemplate.opsForList().leftPush(redisKey, logJson); // Redis List에 저장
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save log to Redis", e);
+        }
     }
 
     /**

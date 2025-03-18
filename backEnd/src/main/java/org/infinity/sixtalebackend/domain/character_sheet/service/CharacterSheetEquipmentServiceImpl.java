@@ -15,6 +15,7 @@ import org.infinity.sixtalebackend.domain.room.domain.PlayMember;
 import org.infinity.sixtalebackend.domain.room.repository.PlayMemberRepository;
 import org.infinity.sixtalebackend.domain.scenario.domain.ScenarioEquipment;
 import org.infinity.sixtalebackend.domain.scenario.repository.ScenarioEquipmentRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

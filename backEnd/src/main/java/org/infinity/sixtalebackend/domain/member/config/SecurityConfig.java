@@ -28,7 +28,7 @@ public class SecurityConfig {
                  .addFilterBefore(new XFrameOptionsFilter(), CorsFilter.class)  // XFrameOptionsFilter 추가
                  .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers("/", "/members/auth/login").permitAll()
+                                .requestMatchers("/", "/members/auth/login", "/api/v1/**").permitAll()
                                 .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JWTTokenFilter(), UsernamePasswordAuthenticationFilter.class)
@@ -52,8 +52,9 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("https://i11d108.p.ssafy.io");
-        config.addAllowedOrigin("http://localhost:8083");
+        config.addAllowedOrigin("*");
+//        config.addAllowedOrigin("https://i11d108.p.ssafy.io");
+//        config.addAllowedOrigin("http://localhost:8083");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/api/v1/**", config);

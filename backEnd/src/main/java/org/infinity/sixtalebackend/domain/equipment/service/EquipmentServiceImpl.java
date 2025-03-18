@@ -7,6 +7,7 @@ import org.infinity.sixtalebackend.domain.equipment.dto.EquipmentResponse;
 import org.infinity.sixtalebackend.domain.equipment.repository.EquipmentRepository;
 import org.infinity.sixtalebackend.domain.rule.domain.Rule;
 import org.infinity.sixtalebackend.domain.rule.repository.RuleRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     private final EquipmentRepository equipmentRepository;
 
     @Override
+    @Cacheable(value = "equipmentListCache", key = "#ruleID", unless = "#result == null")
     public EquipmentListResponse readEquipmentList(Long ruleID) {
         Rule rule = ruleRepository.findById(ruleID).get();
         List<Equipment> equipmentList = equipmentRepository.findByRule(rule);
