@@ -13,7 +13,6 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class EquipmentListResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
